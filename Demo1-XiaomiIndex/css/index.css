@@ -1,0 +1,321 @@
+body {
+  min-width: 1226px;
+}
+
+.w {
+  width: 1226px;
+  margin: 0 auto;
+}
+
+/* 置顶导航栏 */
+.top_nav {
+  width: 100%;
+  height: 40px;
+  background-color: #333;
+}
+
+.tn {
+  display: flex;
+  justify-content: space-between;
+}
+
+.top_nav .w {
+  display: flex;
+}
+
+.tn_list {
+  display: flex;
+  flex: none;
+}
+
+.tn_op {
+  flex: none;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+}
+
+.tn_op a {
+  color: #b0b0b0;
+  font-size: 12px;
+}
+
+.tn_op:hover a {
+  color: #fff;
+}
+
+.tn_op::after {
+  content: '';
+  display: inline-block;
+  height: 17.33px;
+  width: 0;
+  margin: 0 8px;
+  border-left: 1px solid #424242;
+  vertical-align: middle;
+}
+
+.tn_op:last-child::after {
+  content: '';
+  display: none;
+}
+
+.shop_car {
+  width: 120px;
+  height: 40px;
+  text-align: center;
+  background-color: #424242;
+  font-size: 12px;
+  color: #b0b0b0;
+}
+
+.shop_car::before {
+  margin: 0 5px;
+  vertical-align: top;
+  font-family: 'iconfont';
+  content: '\e61a';
+  font-size: 14px;
+}
+
+/* 头部导航栏 */
+.nav {
+  display: flex;
+  height: 100px;
+}
+
+.logo span {
+  display: inline-block;
+  width: 56px;
+  height: 56px;
+  margin-top: 22px;
+  background: url(../images/logo-mi2.png) no-repeat;
+  background-size: cover;
+}
+
+.shop_nav {
+  display: flex;
+  flex: 1;
+  padding-left: 175px;
+  padding-right: 65px;
+}
+
+.shop_nav li {
+  flex: 1 1 auto;
+  text-align: center;
+  line-height: 100px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.shop_nav li:hover {
+  color: #ff6a00;
+}
+
+.shop_nav li:hover a {
+  color: #ff6a00;
+}
+
+.search {
+  width: 245px;
+  height: 50px;
+  margin-top: 25px;
+  padding: 0 10px;
+  border: 1px solid #e0e0e0;
+}
+
+.search input {
+  width: 100%;
+  height: 100%;
+  font-size: 14px;
+  color: #666;
+}
+
+.sear_btn {
+  width: 52px;
+  height: 50px;
+  margin-top: 25px;
+  margin-left: -1px;
+  border: 1px solid #e0e0e0;
+}
+
+.sear_btn .iconfont {
+  font-size: 20px;
+}
+
+/* banner区域 */
+.banner {
+  height: 460px;
+}
+
+.banner .w {
+  height: 460px;
+  display: flex;
+
+}
+
+.subnav {
+  width: 234px;
+  height: 460px;
+  padding: 20px 0;
+  background-color: #989899;
+}
+
+.subnav ul {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.subnav ul li {
+  flex: 1;
+  padding: 0 30px;
+}
+
+.subnav ul li a {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 42px;
+  color: #fff;
+}
+
+.subnav ul li:hover {
+  background-color: #ff6a00;
+}
+
+.subnav ul li a span {
+  float: right;
+}
+
+/* 轮播图 */
+.carousel {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  /* 隐藏超出容器的图片 */
+  margin: 0 auto;
+}
+
+.carousel-inner {
+  display: flex;
+  /* 让图片水平排列 */
+  transition: transform 0.3s ease;
+  /* 平滑切换动画 */
+}
+
+
+.carousel-inner img {
+  width: 992px;
+  /* 每张图片与容器同宽 */
+  height: 460px;
+  object-fit: cover;
+  object-position: right;
+  /* 保持比例，裁剪多余部分 */
+
+}
+
+.caro_btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 68px;
+  width: 40px;
+  background: transparent;
+  font-size: 40px;
+  color: transparent;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.caro_btn:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+.prev {
+  left: 10px;
+}
+
+.next {
+  right: 10px;
+}
+
+.indicators {
+  position: absolute;
+  bottom: 25px;
+  right: 0px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid #707781;
+  background: #8e8f91;
+  cursor: pointer;
+}
+
+.dot.active {
+  background: rgba(255, 255, 255, .3);
+}
+
+.home_sub {
+  display: flex;
+  gap: 14.5px;
+  margin-top: 20px;
+}
+
+.chan {
+  width: 234px;
+  background-color: #5f5750;
+}
+
+.chan ul {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 2px 0;
+}
+
+.chan ul li {
+  flex: 33%;
+  height: 83px;
+  padding-top: 10px;
+  text-align: center;
+}
+
+.chan ul li a:hover .iconfont {
+  color: #fff;
+}
+
+.chan ul li a:hover p {
+  color: #fff;
+}
+
+.chan ul li a .iconfont {
+  font-size: 26px;
+  color: #c0bdba;
+}
+
+.chan ul li a p {
+  margin-top: -5px;
+  color: #c0bdba;
+}
+
+.sub_prod {
+  flex: 1;
+  background-color: skyblue;
+}
+
+.sub_prod img {
+  object-fit: cover;
+  object-position: center center;
+  transition: box-shadow 0.3s;
+}
+
+.sub_prod img:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
