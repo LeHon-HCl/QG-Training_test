@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ToDo List</title>
+  <!-- 引入css初始化 -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/normalize.css">
+  <!-- 引入页面css文件 -->
+  <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+  <div class="wb"></div>
+  <!-- 其他小组件 start -->
+  <div class="other">
+    <a href="#" class="about-us">关于我们</a>
+    <div class="lang-trans">
+      <button href="#" class="Eng">En</button>
+      <span>/</span>
+      <button href="#" class="Cn">中</button>
+    </div>
+  </div>
+  <!-- 其他小组件 end -->
+
+  <!-- logo部分 start -->
+  <div class="w">
+    <div class="logo">
+      <header>◇◇TODO⨹</header>
+    </div>
+  </div>
+  <!-- logo部分 end -->
+
+  <!-- 待办事项提交栏 start -->
+  <div class="w">
+    <div class="todo-text common-box">
+      <input type="text" class="todo-li" placeholder="新增待办事项…" id="task-input">
+      <button class="submit" id="add-task">提交</button>
+    </div>
+  </div>
+  <!-- 待办事项提交栏 end -->
+
+  <!-- 筛选区域 start -->
+  <!-- <div class="filter-section w common-box">
+    <label>筛选分类：</label>
+    <select id="filterSelect">
+      <option value="all">所有待办</option>
+    </select>
+  </div> -->
+  <!-- 筛选区域 end -->
+
+  <div class="contain">
+    <!-- 待办列表 start-->
+    <div class="w">
+      <div class="todo-list common-box">
+        <div class="todo-hd">
+          <button class="fns-all" id="finish-all">全部完成</button>
+          <span class="saying">今日事今日毕，勿将今事待明日</span>
+        </div>
+        <ul class="todo-bd" id="todos-list">
+          <div class="empty-state hidden">
+            <i></i>
+            <p>还没有待办事项呢，快创建一个吧！</p>
+          </div>
+        </ul>
+        <footer class="todo-ft">
+          <span class="rest-fns" id="items-left">还剩 0 项</span>
+          <button id="clear-completed">清除已完成事项</button>
+        </footer>
+      </div>
+    </div>
+    <!-- 待办列表 end-->
+
+
+
+
+    <!-- 侧边栏 start -->
+    <aside>
+      <ul class="func-list common-box">
+        <li class="all filter active" data-filter="all"><button>全部</button></li>
+        <li class="filter" data-filter="active"><button>未完成</button></li>
+        <li class="filter" data-filter="completed"><button>已完成</button></li>
+        <li id="clear-all"><button>清除全部</button></li>
+        <li><button>导出数据</button></li>
+        <li><button>导入(txt/json)</button></li>
+      </ul>
+    </aside>
+    <!-- 侧边栏 end -->
+
+  </div>
+
+  <script src="js/note.js"></script>
+</body>
+
+</html>
