@@ -1,9 +1,10 @@
 const http = require('http')
 const { compose } = require('./src/middlewares')
-const { logger, bodyParser, auth, routeHandler } = require('./src/middlewares')
+const { logger, bodyParser, authMiddleware, routeHandler } = require('./src/middlewares')
 const { sendJson, sendError } = require('./src/utils/response')
+const authMiddleware = require('./src/middlewares/auth')
 
-const middlewares = [logger, bodyParser, auth, routeHandler]
+const middlewares = [logger, bodyParser, authMiddleware, routeHandler]
 const handle = compose(middlewares)
 
 const server = http.createServer(async (req, res) => {
