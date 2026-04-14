@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教学管理系统 - 登录页</title>
+  <link rel="stylesheet" href="./css/login.css">
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <h2>教学管理系统</h2>
+      <p class="subtitle">请使用账号密码登录</p>
+
+      <form action="" id="loginForm">
+        <div class="form-group">
+          <label for="username">用户名</label>
+          <input type="text" id="username" name="username" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label for="password">密码</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="remember" name="remember">
+            记住登录状态
+          </label>
+        </div>
+
+        <button class="submit" id="loginBtn">登录</button>
+
+        <div id="errorMsg" class="error-message"></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="./js/login.js"></script>
+  <script src="./js/api.js"></script>
+</body>
+
+</html>
