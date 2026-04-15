@@ -1,4 +1,4 @@
-function validataScore(data) {
+function validateScore(data) {
   const { studentId, subject, score, examDate, classId } = data
   if (!studentId || !subject || !score === undefined) {
     return '缺少必要字段'
@@ -7,4 +7,8 @@ function validataScore(data) {
     return '成绩必须是数字且在0-150之间（包含0和150）'
   }
   return null
+}
+
+module.exports = {
+  validateScore
 }
