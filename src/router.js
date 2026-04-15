@@ -47,12 +47,15 @@ async function routeRequest(req, res) {
   const path = parsedUrl.pathname // 获取路径
   const method = req.method // 获取请求方法
 
+  req.query = parsedUrl.query
+  req.routeParams = {}
+
   // 1.先尝试精确匹配
   const exactKey = `${method} ${path}`
   console.log('[ROUTER] 精确匹配 key:', exactKey);
   if (routes[exactKey]) {
     console.log('[ROUTER] 精确匹配成功，调用处理函数')
-    return await routes[exactKey](req, res, parsedUrl.query)
+    return await routes[exactKey](req, res)
   }
 
   // 2.动态路由分配
@@ -62,7 +65,8 @@ async function routeRequest(req, res) {
       const params = matchRoute(routePath, path)
       if (params) {
         console.log('[ROUTER] 动态匹配成功，key:', routeKey, 'params:', params)
-        return await routes[routeKey](req, res, params, parsedUrl.query)
+        req.routeParams = params
+        return await routes[routeKey](req, res)
       }
     }
   }
