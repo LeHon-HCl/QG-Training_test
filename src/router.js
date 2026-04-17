@@ -59,6 +59,7 @@ async function routeRequest(req, res) {
   }
 
   // 2.动态路由分配
+  console.log('[ROUTER] 开始动态匹配，当前 routes 数量:', Object.keys(routes).length)
   for (const routeKey in routes) {
     if (routeKey.startsWith(method)) {
       const routePath = routeKey.split(' ')[1] // 提取路径部分

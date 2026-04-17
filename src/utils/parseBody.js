@@ -6,7 +6,9 @@ function parseBody(req) {
     req.on('data', chunk => body += chunk.toString())
     req.on('end', () => {
       try {
-        if (req.headers['content-type'] === 'application/json') {
+        if (body === '') {
+          resolve({})
+        } else if (req.headers['content-type'] === 'application/json') {
           resolve(JSON.parse(body))
         } else {
           resolve(querystring.parse(body))

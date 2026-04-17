@@ -1,6 +1,8 @@
 const classService = require('../services/classService')
 const { sendJson, sendError } = require('../utils/response')
 const { validateClass, validateBindTeacher, validateStudentOperation } = require('../utils/validation')
+const { recordOperation } = require('../utils/operationLogger')
+
 
 // 1. 获取所有班级
 async function handleGetClasses(req, res) {
@@ -28,6 +30,13 @@ async function handleCreateClass(req, res) {
 
   try {
     const newClass = await classService.createClass(className, grade)
+    await recordOperation(
+      req.user,
+      'CREATE_CLASS',
+      `创建班级 ${className}，年级 ${grade}`,
+      'class',
+      newClass.id
+    )
     sendJson(res, 201, newClass)
   } catch (err) {
     console.error('创建班级失败:', err)
@@ -52,7 +61,17 @@ async function handleUpdateClass(req, res) {
   try {
     const success = await classService.updateClass(classId, className, grade)  // 更新班级
     if (!success) return sendError(res, 404, '班级不存在')
+    if (err.message === '班级名称已存在') {
+      return sendError(res, 400, '同年级已存在相同名称的班级')
+    }
     // 如果更新成功，返回更新后的班级信息
+    await recordOperation(
+      req.user,
+      'UPDATE_CLASS',
+      `更新班级 ${classId}，班级名称 ${className}，年级 ${grade}`,
+      'class',
+      classId
+    )
     sendJson(res, 200, { message: '班级更新成功' })
   } catch (err) {
     console.error('更新班级失败:', err)
@@ -70,6 +89,13 @@ async function handleDeleteClass(req, res) {
     const success = await classService.deleteClass(classId)
     if (!success) return sendError(res, 404, '班级不存在')
     // 如果删除成功，返回删除成功信息
+    await recordOperation(
+      req.user,
+      'DELETE_CLASS',
+      `删除班级 ${classId}`,
+      'class',
+      classId
+    )
     sendJson(res, 200, { message: '班级删除成功' })
   } catch (err) {
     console.error('删除班级失败:', err)
@@ -89,6 +115,14 @@ async function handleBindTeacher(req, res) {
   try {
     await classService.bindTeacher(classId, teacherId)
     // 如果绑定成功，返回绑定成功信息
+    await recordOperation(
+      req.user,
+      'BIND_TEACHER',
+      `绑定班级 ${classId}，教师 ${teacherId}`,
+      'class',
+      classId
+    )
+    await classService.unbindTeacher(classId)
     sendJson(res, 200, { message: '班主任绑定成功' })
   } catch (err) {
     if (err.message.includes('不是教师')) return sendError(res, 400, err.message) //如果指定的用户不是教师，返回400错误信息
@@ -109,6 +143,13 @@ async function handleUnbindTeacher(req, res) {
     const success = await classService.unbindTeacher(classId)
     if (!success) return sendError(res, 404, '该班级未绑定班主任')
     // 如果解绑成功，返回解绑成功信息
+    await recordOperation(
+      req.user,
+      'UNBIND_TEACHER',
+      `解绑班级 ${classId}`,
+      'class',
+      classId
+    )
     sendJson(res, 200, { message: '班主任解绑成功' })
   } catch (err) {
     console.error('解绑班主任失败:', err)
@@ -152,6 +193,13 @@ async function handleAddStudent(req, res) {
   try {
     await classService.addStudentToClass(classId, studentId)
     // 如果添加成功，返回添加成功信息
+    await recordOperation(
+      req.user,
+      'ADD_STUDENT',
+      `添加学生 ${studentId} 到班级 ${classId}`,
+      'class',
+      classId
+    )
     sendJson(res, 200, { message: '学生添加成功' })
   } catch (err) {
     if (err.message.includes('不是学生') || err.message.includes('已属于其他班级')) {

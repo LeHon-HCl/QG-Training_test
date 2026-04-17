@@ -2,6 +2,7 @@ const db = require('../db')
 const { generateToken } = require('../utils/jwt')
 const { verifyPassword } = require('../utils/password')
 const { sendJson, sendError } = require('../utils/response')
+const { recordOperation } = require('../utils/operationLogger')
 
 const loginAttempts = new Map()
 
@@ -73,6 +74,14 @@ async function loginHandler(req, res) {
       role: user.role,
     })
     console.log('[LOGIN] token 生成成功');
+
+    await recordOperation(
+      { userId: user.id, realName: user.real_name },
+      'LOGIN',
+      `用户 ${user.username} 登录系统`,
+      'user',
+      user.id
+    )
 
     //返回用户信息和 Token
     sendJson(res, 200, {

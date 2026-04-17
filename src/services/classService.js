@@ -33,6 +33,15 @@ async function createClass(className, grade) {
 
 //更新班级
 async function updateClass(classId, className, grade) {
+  //先检查是否存在同名的其他班级
+  const [existing] = await db.execute(
+    'SELECT id FROM classes WHERE class_name = ? AND grade = ? AND id != ?',
+    [className, grade, classId]
+  )
+  if (existing.length > 0) {
+    throw new Error('班级名称已存在')
+  }
+
   const [result] = await db.execute(
     'UPDATE classes SET class_name = ?, grade = ? WHERE id = ?',
     [className, grade, classId]
