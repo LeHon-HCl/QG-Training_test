@@ -101,10 +101,10 @@ const api = {
       if (window.location.pathname !== '/login.html') {
         window.location.href = '/login.html';
       }
-      return { error: '未登录或登录已过期' };
+      throw new Error('未登录或登录已过期');
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (!response.ok) {
       throw new Error(data.error || `请求失败 (${response.status})`);
@@ -121,106 +121,135 @@ const api = {
     });
   },
 
-  // 获取班级列表
+  // ========== 班级相关 ==========
+  // 获取班级列表（带缓存）
   getClasses: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return cachedRequest('classes', `/api/classes${query ? '?' + query : ''}`, {}, params);
   },
 
-  // 获取班级详情
+  // 获取班级详情（带缓存）
   getClassDetail: (id) => {
     return cachedRequest('class_detail', `/api/classes/${id}`, {}, { id });
   },
 
-  // 创建班级
-  createClass: (data) => api.request('/api/classes', {
-    method: 'POST',
-    body: JSON.stringify(data)
-  }),
+  // 创建班级（写操作，清除缓存）
+  createClass: async (data) => {
+    const result = await api.request('/api/classes', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    clearCacheByPrefix('classes');
+    return result;
+  },
 
-  // 更新班级
-  updateClass: (id, data) => api.request(`/api/classes/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data)
-  }),
+  // 更新班级（写操作，清除缓存）
+  updateClass: async (id, data) => {
+    const result = await api.request(`/api/classes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+    clearCacheByPrefix('classes');
+    clearCacheByPrefix('class_detail');
+    return result;
+  },
 
-  // 删除班级
-  deleteClass: (id) => api.request(`/api/classes/${id}`, {
-    method: 'DELETE'
-  }),
+  // 删除班级（写操作，清除缓存）
+  deleteClass: async (id) => {
+    const result = await api.request(`/api/classes/${id}`, {
+      method: 'DELETE'
+    });
+    clearCacheByPrefix('classes');
+    clearCacheByPrefix('class_detail');
+    return result;
+  },
 
-  // 绑定班主任
-  bindTeacher: (classId, teacherId) => api.request('/api/classes/bind-teacher', {
-    method: 'POST',
-    body: JSON.stringify({ classId, teacherId })
-  }),
+  // 绑定班主任（写操作，清除缓存）
+  bindTeacher: async (classId, teacherId) => {
+    const result = await api.request('/api/classes/bind-teacher', {
+      method: 'POST',
+      body: JSON.stringify({ classId, teacherId })
+    });
+    clearCacheByPrefix('classes');
+    clearCacheByPrefix('class_detail');
+    return result;
+  },
 
-  // 解绑班主任
-  unbindTeacher: (classId) => api.request('/api/classes/unbind-teacher', {
-    method: 'POST',
-    body: JSON.stringify({ classId })
-  }),
+  // 解绑班主任（写操作，清除缓存）
+  unbindTeacher: async (classId) => {
+    const result = await api.request('/api/classes/unbind-teacher', {
+      method: 'POST',
+      body: JSON.stringify({ classId })
+    });
+    clearCacheByPrefix('classes');
+    clearCacheByPrefix('class_detail');
+    return result;
+  },
 
-  // 添加学生到班级
-  addStudentToClass: (classId, studentId) => api.request('/api/classes/add-student', {
-    method: 'POST',
-    body: JSON.stringify({ classId, studentId })
-  }),
+  // 添加学生到班级（写操作，清除缓存）
+  addStudentToClass: async (classId, studentId) => {
+    const result = await api.request('/api/classes/add-student', {
+      method: 'POST',
+      body: JSON.stringify({ classId, studentId })
+    });
+    clearCacheByPrefix('classes');
+    clearCacheByPrefix('class_detail');
+    return result;
+  },
 
-  // 从班级移除学生
-  removeStudentFromClass: (classId, studentId) => api.request('/api/classes/remove-student', {
-    method: 'POST',
-    body: JSON.stringify({ classId, studentId })
-  }),
+  // 从班级移除学生（写操作，清除缓存）
+  removeStudentFromClass: async (classId, studentId) => {
+    const result = await api.request('/api/classes/remove-student', {
+      method: 'POST',
+      body: JSON.stringify({ classId, studentId })
+    });
+    clearCacheByPrefix('classes');
+    clearCacheByPrefix('class_detail');
+    return result;
+  },
 
-  // 获取用户列表（支持角色筛选）
+  // ========== 用户相关 ==========
+  // 获取用户列表（带缓存）
   getUsers: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return cachedRequest('users', `/api/users${query ? '?' + query : ''}`, {}, params);
   },
 
-  // 获取成绩列表
+  // ========== 成绩相关 ==========
   getScores: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return api.request(`/api/scores${query ? '?' + query : ''}`);
   },
 
-  // 添加成绩
   addScore: (data) => api.request('/api/scores', {
     method: 'POST',
     body: JSON.stringify(data)
   }),
 
-  // 批量添加成绩
   addScoresBatch: (scores) => api.request('/api/scores/batch', {
     method: 'POST',
     body: JSON.stringify({ scores })
   }),
 
-  // 更新成绩
   updateScore: (id, data) => api.request(`/api/scores/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data)
   }),
 
-  // 删除成绩
   deleteScore: (id) => api.request(`/api/scores/${id}`, {
     method: 'DELETE'
   }),
 
-  // 成绩统计
   getScoreStatistics: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return api.request(`/api/statistics/scores${query ? '?' + query : ''}`);
   },
 
-  // 导出成绩（返回 Blob 流，浏览器自动下载）
   exportScores: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     const url = `/api/scores/export${query ? '?' + query : ''}`;
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    // 直接触发浏览器下载，不经过 json 解析
     fetch(url, { headers }).then(response => {
       if (!response.ok) throw new Error('导出失败');
       return response.blob();
@@ -238,7 +267,7 @@ const api = {
     });
   },
 
-  // 通知相关
+  // ========== 通知相关 ==========
   getNotices: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return api.request(`/api/notices${query ? '?' + query : ''}`);
@@ -264,7 +293,7 @@ const api = {
 
   getNoticeReadStatus: (id) => api.request(`/api/notices/${id}/read-status`),
 
-  // 日志
+  // ========== 日志相关 ==========
   getLogs: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return api.request(`/api/logs${query ? '?' + query : ''}`);
@@ -274,5 +303,5 @@ const api = {
   ping: () => api.request('/api/ping')
 };
 
-// 将 api 挂载到全局，其他 JS 文件可直接使用
+// 将 api 挂载到全局
 window.api = api;

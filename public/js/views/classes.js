@@ -63,9 +63,16 @@
         return;
       }
 
+      renderClassTable(currentClasses);
+      await loadGradeOptions();
+
       const enrichedClasses = await Promise.all(currentClasses.map(async (cls) => {
-        const detail = await api.getClassDetail(cls.id);
-        return { ...cls, teacher: detail.teacher, studentCount: detail.students.length };
+        try {
+          const detail = await api.getClassDetail(cls.id);
+          return { ...cls, teacher: detail.teacher, studentCount: detail.students.length };
+        } catch {
+          return { ...cls, teacher: null, studentCount: 0 };
+        }
       }));
 
       currentClasses = enrichedClasses;
@@ -125,35 +132,50 @@
     // 表格内操作（事件代理）
     const tbody = document.querySelector('#classTableBody');
     if (tbody) {
-      tbody.addEventListener('click', async (e) => {
-        const btn = e.target.closest('button');
-        if (!btn) return;
-        const action = btn.dataset.action, classId = btn.dataset.id;
-        switch (action) {
-          case 'view': viewClassDetail(classId); break;
-          case 'edit': showEditClassModal(classId); break;
-          case 'bind': showBindTeacherModal(classId); break;
-          case 'unbind': confirmUnbindTeacher(classId); break;
-          case 'students': showManageStudentModal(classId); break;
-          case 'delete': confirmDeleteClass(classId); break;
-        }
-      });
+      tbody.removeEventListener('click', handleTableClick);
+      tbody.addEventListener('click', handleTableClick);
     }
 
-    // 顶部按钮（通过全局事件代理，避免重复绑定）
-    document.addEventListener('click', (e) => {
-      if (e.target.id === 'createClassBtn') showCreateClassModal();
-      if (e.target.id === 'refreshBtn') {
-        const grade = document.querySelector('#gradeFilter')?.value || '';
-        debounce(() => loadClasses(grade), 300)();
-      }
-    });
+    // 全局顶部按钮委托（只绑定一次）
+    if (!window._classesGlobalBound) {
+      document.addEventListener('click', handleGlobalClick);
+      window._classesGlobalBound = true;
+    }
 
-    // 年级筛选防抖
+    // 年级筛选
     const gradeSelect = document.querySelector('#gradeFilter');
     if (gradeSelect) {
-      gradeSelect.addEventListener('change', debounce((e) => loadClasses(e.target.value), 300));
+      gradeSelect.removeEventListener('change', handleGradeChange);
+      gradeSelect.addEventListener('change', handleGradeChange);
     }
+  }
+
+  async function handleTableClick(e) {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const action = btn.dataset.action, classId = btn.dataset.id;
+    switch (action) {
+      case 'view': viewClassDetail(classId); break;
+      case 'edit': showEditClassModal(classId); break;
+      case 'bind': showBindTeacherModal(classId); break;
+      case 'unbind': confirmUnbindTeacher(classId); break;
+      case 'students': showManageStudentModal(classId); break;
+      case 'delete': confirmDeleteClass(classId); break;
+    }
+  }
+
+  function handleGlobalClick(e) {
+    if (e.target.id === 'createClassBtn') {
+      showCreateClassModal();
+    }
+    if (e.target.id === 'refreshBtn') {
+      const grade = document.querySelector('#gradeFilter')?.value || '';
+      loadClasses(grade);
+    }
+  }
+
+  function handleGradeChange(e) {
+    loadClasses(e.target.value);
   }
 
   // ========== 弹窗：新建班级 ==========
@@ -164,7 +186,7 @@
         <div class="form-group"><label>年级（四位年份）</label><input type="number" name="grade" required min="2000" max="2100" value="${new Date().getFullYear()}"></div>
       </form>
     `;
-    new Modal({
+    const modal = new Modal({
       title: '新建班级', content,
       onConfirm: async () => {
         const form = document.getElementById('classForm');
@@ -172,6 +194,7 @@
         const data = { className: formData.get('className'), grade: parseInt(formData.get('grade')) };
         try {
           await api.createClass(data);
+          modal.hide();
           loadClasses();
           showToast('班级创建成功', 'success');
         } catch (err) {
@@ -193,7 +216,7 @@
         <div class="form-group"><label>年级</label><input type="number" name="grade" value="${cls.grade}" required></div>
       </form>
     `;
-    new Modal({
+    const modal = new Modal({
       title: '编辑班级', content,
       onConfirm: async () => {
         const form = document.getElementById('editClassForm');
@@ -201,6 +224,7 @@
         const data = { className: formData.get('className'), grade: parseInt(formData.get('grade')) };
         try {
           await api.updateClass(classId, data);
+          modal.hide();
           loadClasses();
           showToast('班级编辑成功', 'success');
         } catch (err) {
@@ -221,12 +245,13 @@
       <p>当前班级：${cls.class_name} (${cls.grade}级)</p>
       <div class="form-group"><label>选择班主任</label><select id="teacherSelect">${options}</select></div>
     `;
-    new Modal({
+    const modal = new Modal({
       title: '绑定班主任', content,
       onConfirm: async () => {
         const teacherId = document.getElementById('teacherSelect').value;
         try {
           await api.bindTeacher(classId, teacherId);
+          modal.hide();
           loadClasses();
           showToast('班主任绑定成功', 'success');
         } catch (err) {
@@ -294,12 +319,13 @@
     const cls = findClassById(classId);
     if (!cls) { showToast('班级信息未找到', 'error'); return; }
 
-    new Modal({
+    const modal = new Modal({
       title: '确认删除',
       content: `<p>确定要删除班级 "${cls.class_name}" 吗？此操作不可逆，将级联删除相关绑定和成绩数据。</p>`,
       onConfirm: async () => {
         try {
           await api.deleteClass(classId);
+          modal.hide();
           loadClasses();
           showToast('班级已删除', 'success');
         } catch (err) {
@@ -340,12 +366,13 @@
     if (!cls) { showToast('班级信息未找到', 'error'); return; }
     if (!cls.teacher) { showToast('该班级尚未绑定班主任', 'info'); return; }
 
-    new Modal({
+    const modal = new Modal({
       title: '确认解绑',
       content: `<p>确定要解除班级 "${cls.class_name}" 的班主任 "${cls.teacher.real_name}" 吗？</p>`,
       onConfirm: async () => {
         try {
           await api.unbindTeacher(classId);
+          modal.hide();
           loadClasses();
           showToast('班主任解绑成功', 'success');
         } catch (err) {
