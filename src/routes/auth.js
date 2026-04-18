@@ -103,8 +103,6 @@ async function loginHandler(req, res) {
   }
 }
 
-// console.log('[AUTH] 导出的路由键:', Object.keys(module.exports))
 module.exports = {
   'POST /api/login': loginHandler
 }
-// console.log('[AUTH] 实际导出对象:', module.exports)

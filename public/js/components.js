@@ -45,9 +45,16 @@ class Modal {
     });
 
     // 确定按钮
-    confirmBtn.addEventListener('click', () => {
-      this.onConfirm();
-      this.hide();
+    confirmBtn.addEventListener('click', async () => {
+      // 如果 onConfirm 返回 false 或抛出异常，则不关闭弹窗
+      try {
+        const result = await this.onConfirm();
+        if (result !== false) {
+          this.hide();
+        }
+      } catch (err) {
+        // 错误已在 onConfirm 内部处理，不关闭弹窗
+      }
     });
 
     // 取消按钮（如果存在）

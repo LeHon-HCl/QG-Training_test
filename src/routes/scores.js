@@ -15,6 +15,9 @@ async function handleAddScore(req, res) {
 
   // 2.获取并校验请求体数据
   const scoreData = req.body
+  if (!scoreData.examDate) {
+    scoreData.examDate = new Date().toISOString().split('T')[0]
+  }
   const error = validateScore(scoreData)
   if (error) {
     return sendError(res, 400, error)
@@ -34,9 +37,25 @@ async function handleAddScore(req, res) {
     }
     scoreData.classId = rows[0].class_id
   }
+  if (user.role === 'admin') {
+    if (!scoreData.classId) {
+      const [studentRows] = await db.execute(
+        'SELECT class_id FROM class_student WHERE student_id = ?',
+        [scoreData.studentId]
+      );
+      if (studentRows.length === 0) {
+        return sendError(res, 400, '该学生未分配班级，请先分配班级');
+      }
+      scoreData.classId = studentRows[0].class_id;
+    }
+  }
 
   //4.调用服务层添加成绩
   try {
+    const [studentExists] = await db.execute('SELECT id FROM users WHERE id = ? AND role = ?', [scoreData.studentId, 'student'])
+    if (studentExists.length === 0) {
+      return sendError(res, 400, '学生不存在或不是学生身份')
+    }
     const result = await scoreService.addScore(scoreData, user.userId)
     //记录日志
     await recordOperation(

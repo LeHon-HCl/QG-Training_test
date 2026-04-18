@@ -448,4 +448,3 @@
 
   window.renderNoticesView = renderNoticesView;
 })();
-

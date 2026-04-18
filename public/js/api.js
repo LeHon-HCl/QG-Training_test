@@ -27,7 +27,12 @@ const api = {
       return { error: '未登录或登录已过期' };
     }
 
-    const data = await response.json();
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || `请求失败 (${response.status})`);
+    }
+
     return data;
   },
 

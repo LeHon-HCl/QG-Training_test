@@ -317,44 +317,46 @@
   // 弹窗：添加成绩
   async function showAddScoreModal() {
     const user = getUser();
-    // 获取班级列表（用于下拉）
     let classSelectHtml = '';
     if (user.role === 'admin') {
-      const res = await api.getClasses();
-      const classes = res.data || res;
-      classSelectHtml = `
-            <select id="scoreClassId" required>
-                <option value="">选择班级</option>
-                ${classes.map(c => `<option value="${c.id}">${c.class_name} (${c.grade}级)</option>`).join('')}
-            </select>
-        `;
+      try {
+        const res = await api.getClasses();
+        const classes = res.data || res;
+        classSelectHtml = `
+                <div class="form-group">
+                    <label>选择班级 <span style="color:red">*</span></label>
+                    <select id="scoreClassId" name="classId" required>
+                        <option value="">-- 请选择班级 --</option>
+                        ${classes.map(c => `<option value="${c.id}">${c.class_name} (${c.grade}级)</option>`).join('')}
+                    </select>
+                </div>
+            `;
+      } catch (err) {
+        showToast('获取班级列表失败', 'error');
+        return;
+      }
     }
 
     const content = `
         <form id="scoreForm">
-            ${user.role === 'admin' ? `
-                <div class="form-group">
-                    <label>班级</label>
-                    ${classSelectHtml}
-                </div>
-            ` : ''}
+            ${classSelectHtml}
             <div class="form-group">
-                <label>学生学号</label>
-                <input type="number" name="studentId" required>
+                <label>学生学号 <span style="color:red">*</span></label>
+                <input type="number" name="studentId" required min="1" placeholder="请输入有效学号">
             </div>
             <div class="form-group">
-                <label>科目</label>
+                <label>科目 <span style="color:red">*</span></label>
                 <select name="subject" required>
                     ${subjectOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
                 </select>
             </div>
             <div class="form-group">
-                <label>分数</label>
+                <label>分数 <span style="color:red">*</span></label>
                 <input type="number" step="0.1" name="score" min="0" max="150" required>
             </div>
             <div class="form-group">
-                <label>考试日期</label>
-                <input type="date" name="examDate" required>
+                <label>考试日期 <span style="color:red">*</span></label>
+                <input type="date" name="examDate" required value="${new Date().toISOString().split('T')[0]}">
             </div>
         </form>
     `;
@@ -365,22 +367,37 @@
       onConfirm: async () => {
         const form = document.getElementById('scoreForm');
         const formData = new FormData(form);
+
+        const classIdVal = formData.get('classId');
+        const studentIdVal = formData.get('studentId');
+
+        if (user.role === 'admin' && (!classIdVal || classIdVal === '')) {
+          showToast('请选择班级', 'error');
+          return false;
+        }
+        if (!studentIdVal || parseInt(studentIdVal) <= 0) {
+          showToast('请输入有效的学生学号', 'error');
+          return false;
+        }
+
         const data = {
-          studentId: parseInt(formData.get('studentId')),
+          studentId: parseInt(studentIdVal),
           subject: formData.get('subject'),
           score: parseFloat(formData.get('score')),
           examDate: formData.get('examDate')
         };
         if (user.role === 'admin') {
-          data.classId = parseInt(formData.get('scoreClassId'));
+          data.classId = parseInt(classIdVal);
         }
+
         try {
           await api.addScore(data);
           modal.hide();
           loadScores();
           showToast('成绩添加成功', 'success');
         } catch (err) {
-          showToast(err.message || '添加失败', 'error');
+          showToast(err.message || '添加失败', 'error')
+          return false
         }
       }
     });
@@ -457,7 +474,13 @@
       content,
       onConfirm: async () => {
         const form = document.getElementById('editScoreForm');
-        const formData = new FormData(form);
+        const formData = new FormData(form)
+        let examDate = formData.get('examDate');
+        if (!examDate) {
+          // 自动填入当天日期
+          const today = new Date();
+          examDate = today.toISOString().split('T')[0];
+        }
         const data = {
           subject: formData.get('subject'),
           score: parseFloat(formData.get('score')),
@@ -493,7 +516,7 @@
     });
   }
 
-  // Toast 提示（与 classes 共用，可提取到公共）
+  // Toast 提示
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -505,5 +528,3 @@
   // 挂载全局
   window.renderScoresView = renderScoresView;
 })();
-
-
