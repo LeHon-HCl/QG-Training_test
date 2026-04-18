@@ -1,3 +1,4 @@
+require('./src/config').loadEnv()
 const http = require('http')
 const { handle } = require('./src/middlewares')
 const { sendJson, sendError } = require('./src/utils/response')
