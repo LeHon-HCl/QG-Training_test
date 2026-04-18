@@ -1,6 +1,83 @@
 // public/js/api.js
 const API_BASE = '';  // 空字符串表示相对路径，与页面同源
 
+const CACHE_CONFIG = {
+  // 缓存有效期（毫秒），默认 5 分钟
+  TTL: 5 * 60 * 1000,
+  // 需要缓存的方法名及其缓存键前缀
+  KEYS: {
+    getClasses: 'classes',
+    getUsers: 'users',
+    getClassDetail: 'class_detail'
+  }
+};
+
+// 获取当前用户标识（用于区分不同角色的缓存）
+function getUserCacheKey() {
+  const userStr = localStorage.getItem('user');
+  if (!userStr) return '';
+  try {
+    const user = JSON.parse(userStr);
+    return `${user.userId}_${user.role}`;
+  } catch {
+    return '';
+  }
+}
+
+// 生成完整的缓存键
+function makeCacheKey(prefix, params = {}) {
+  const userKey = getUserCacheKey();
+  const paramsStr = JSON.stringify(params);
+  return `cache_${prefix}_${userKey}_${paramsStr}`;
+}
+
+// 带缓存的请求
+async function cachedRequest(prefix, url, options = {}, params = {}) {
+  const cacheKey = makeCacheKey(prefix, params);
+
+  // 尝试从缓存读取
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      const { data, expires } = JSON.parse(cached);
+      if (Date.now() < expires) {
+        console.log(`[缓存命中] ${prefix}`);
+        return data;
+      } else {
+        localStorage.removeItem(cacheKey);
+      }
+    } catch (e) {
+      localStorage.removeItem(cacheKey);
+    }
+  }
+
+  // 发起真实请求
+  const response = await api.request(url, options);
+
+  // 存入缓存
+  const cacheData = {
+    data: response,
+    expires: Date.now() + CACHE_CONFIG.TTL
+  };
+  localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+
+  return response;
+}
+
+// 清除特定前缀的所有缓存（用于数据变更后刷新）
+function clearCacheByPrefix(prefix) {
+  const userKey = getUserCacheKey();
+  const pattern = `cache_${prefix}_${userKey}_`;
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith(pattern)) {
+      localStorage.removeItem(key);
+    }
+  });
+}
+
+// 暴露清除方法供外部调用
+window.clearApiCache = clearCacheByPrefix;
+
 const api = {
   // 通用请求方法
   async request(url, options = {}) {
@@ -47,11 +124,13 @@ const api = {
   // 获取班级列表
   getClasses: (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    return api.request(`/api/classes${query ? '?' + query : ''}`);
+    return cachedRequest('classes', `/api/classes${query ? '?' + query : ''}`, {}, params);
   },
 
   // 获取班级详情
-  getClassDetail: (id) => api.request(`/api/classes/${id}`),
+  getClassDetail: (id) => {
+    return cachedRequest('class_detail', `/api/classes/${id}`, {}, { id });
+  },
 
   // 创建班级
   createClass: (data) => api.request('/api/classes', {
@@ -97,7 +176,7 @@ const api = {
   // 获取用户列表（支持角色筛选）
   getUsers: (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    return api.request(`/api/users${query ? '?' + query : ''}`);
+    return cachedRequest('users', `/api/users${query ? '?' + query : ''}`, {}, params);
   },
 
   // 获取成绩列表
