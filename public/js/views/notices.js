@@ -398,7 +398,9 @@
       const res = await api.getNoticeReadStatus(noticeId);
       const stats = res.data || res;
       const readListHtml = stats.readList.map(u => `<li>${u.real_name} (${u.username}) - ${new Date(u.read_time).toLocaleString()}</li>`).join('');
-      const unreadListHtml = stats.unreadList.map(u => `<li>${u.real_name} (${u.username})</li>`).join('');
+      const unreadListHtml = stats.unreadList.map(u => `<li>${u.real_name} (${u.username})</li>`).join('')
+
+      console.log('已读统计:', stats)
 
       const content = `
             <div class="stats-summary">

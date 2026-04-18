@@ -200,7 +200,7 @@ async function getReadStatistics(noticeId) {
   const unreadList = allStudents.filter(s => !readIds.has(s.id))
 
   return {
-    total: totalStudents,
+    total: totalStudentsCount,
     readCount,
     unreadCount: totalStudentsCount - readCount,
     readList: readRows,
