@@ -95,7 +95,7 @@ async function handleUpdateNotice(req, res) {
     // 验证该教师是否是班级的班主任
     const [rows] = await db.execute(`
       SELECT 1 FROM class_teacher WHERE teacher_id = ? AND class_id = ?`,
-      [user.userId, notice.classId])
+      [user.userId, notice.class_id])
     if (rows.length === 0) {
       return sendError(res, 403, '您不是该班级的班主任')
     }
