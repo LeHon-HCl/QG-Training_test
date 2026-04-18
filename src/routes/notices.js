@@ -1,7 +1,7 @@
 const noticeService = require('../services/noticeService')
 const { sendJson, sendError } = require('../utils/response')
 const db = require('../db')
-const recordOperation = require('../utils/operationLogger')
+const { recordOperation } = require('../utils/operationLogger')
 
 //1.发布通知（班主任）
 async function handleCreateNotice(req, res) {
@@ -25,13 +25,17 @@ async function handleCreateNotice(req, res) {
     }
 
     const result = await noticeService.createNotice(user.userId, classId, title, content)
-    await recordOperation(
-      req.user,
-      'CREATE_NOTICE',
-      `发布通知 ${result.id}，班级 ${classId}，标题 ${title}`,
-      'notice',
-      result.id
-    )
+    try {
+      await recordOperation(
+        req.user,
+        'CREATE_NOTICE',
+        `发布通知 ${result.id}，班级 ${classId}，标题 ${title}`,
+        'notice',
+        result.id
+      )
+    } catch (logErr) {
+      console.error('记录操作日志失败', logErr)
+    }
     sendJson(res, 201, { id: result.id, message: '通知发布成功' })
   } catch (err) {
     console.error('通知发布失败:', err)
@@ -100,13 +104,17 @@ async function handleUpdateNotice(req, res) {
     if (!success) {
       return sendError(res, 500, '更新通知失败')
     }
-    await recordOperation(
-      req.user,
-      'UPDATE_NOTICE',
-      `更新通知 ${noticeId}，标题 ${title}`,
-      'notice',
-      noticeId
-    )
+    try {
+      await recordOperation(
+        req.user,
+        'UPDATE_NOTICE',
+        `更新通知 ${noticeId}，标题 ${title}`,
+        'notice',
+        noticeId
+      )
+    } catch (logErr) {
+      console.error('记录操作日志失败', logErr)
+    }
     sendJson(res, 200, { message: '通知更新成功' })
   } catch (err) {
     console.error('更新通知失败:', err)
@@ -125,23 +133,28 @@ async function handleDeleteNotice(req, res) {
 
   try {
     const notice = await noticeService.getNoticeById(noticeId)
+    console.log('查询到的通知:', notice);
     if (!notice) {
       return sendError(res, 404, '通知不存在')
     }
     const [rows] = await db.execute(`
       SELECT 1 FROM class_teacher WHERE teacher_id = ? AND class_id = ?`,
-      [user.userId, notice.classId])
+      [user.userId, notice.class_id])
     if (rows.length === 0) {
       return sendError(res, 403, '您没有权限删除该通知')
     }
     await noticeService.deleteNotice(noticeId)
-    await recordOperation(
-      req.user,
-      'DELETE_NOTICE',
-      `删除通知 ${noticeId}`,
-      'notice',
-      noticeId
-    )
+    try {
+      await recordOperation(
+        req.user,
+        'DELETE_NOTICE',
+        `删除通知 ${noticeId}`,
+        'notice',
+        noticeId
+      )
+    } catch (logErr) {
+      console.error('记录操作日志失败', logErr)
+    }
     sendJson(res, 200, { message: '通知删除成功' })
   } catch (err) {
     console.error('删除通知失败:', err)

@@ -24,6 +24,15 @@ async function getClassById(classId) {
 
 // 创建班级
 async function createClass(className, grade) {
+  // 检查是否已存在同年级同名班级
+  const [existing] = await db.execute(
+    'SELECT id FROM classes WHERE class_name = ? AND grade = ?',
+    [className, grade]
+  );
+  if (existing.length > 0) {
+    throw new Error('DUPLICATE_CLASS_NAME');
+  }
+
   const [result] = await db.execute(
     'INSERT INTO classes (class_name, grade) VALUES (?, ?)',
     [className, grade]
@@ -145,6 +154,32 @@ async function removeStudentFromClass(classId, studentId) {
   return result.affectedRows > 0 // 如果影响行数大于0，说明移除成功
 }
 
+// 获取教师管理的班级
+async function getTeacherClasses(teacherId) {
+  const [rows] = await db.execute(
+    `SELECT c.id, c.class_name, c.grade 
+         FROM classes c
+         JOIN class_teacher ct ON c.id = ct.class_id
+         WHERE ct.teacher_id = ?`,
+    [teacherId]
+  )
+  return rows
+}
+
+// 获取学生所在班级
+async function getStudentClass(studentId) {
+  const [rows] = await db.execute(
+    `SELECT c.id, c.class_name, c.grade 
+         FROM classes c
+         JOIN class_student cs ON c.id = cs.class_id
+         WHERE cs.student_id = ?`,
+    [studentId]
+  )
+  return rows[0] || null
+}
+
+// 别忘了在 module.exports 中导出这两个新函数
+
 module.exports = {
   getAllClasses,
   getClassById,
@@ -157,4 +192,6 @@ module.exports = {
   getClassStudents,
   addStudentToClass,
   removeStudentFromClass,
+  getTeacherClasses,
+  getStudentClass,
 }

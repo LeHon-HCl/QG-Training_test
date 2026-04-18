@@ -10,7 +10,7 @@ const scoreRoutes = require('./routes/scores')
 const noticeRoutes = require('./routes/notices')
 const logRoutes = require('./routes/logs')
 const testRoutes = require('./routes/test')
-
+const userRoutes = require('./routes/users')
 //合并路由表
 const routes = {
   ...authRoutes,
@@ -18,6 +18,7 @@ const routes = {
   ...scoreRoutes,
   ...noticeRoutes,
   ...logRoutes,
+  ...userRoutes,
   ...testRoutes,
 }
 console.log('[ROUTER] 所有路由键:', Object.keys(routes))

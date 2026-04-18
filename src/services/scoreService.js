@@ -10,24 +10,24 @@ async function addScore(scoreData, operatorId) {
 }
 
 // 批量添加成绩
-async function addScoresBatch(scoresArray, operatorId) {
-  const connection = await db.getConnection()
+async function addScoresBatch(scoresArray) {
+  const connection = await db.getConnection();
   try {
-    await connection.beginTransaction()
+    await connection.beginTransaction();
     for (const item of scoresArray) {
       await connection.execute(
         `INSERT INTO scores (student_id, subject, score, exam_date, class_id)
-        VALUES (?, ?, ?, ?, ?)`,
+                 VALUES (?, ?, ?, ?, ?)`,
         [item.studentId, item.subject, item.score, item.examDate, item.classId]
-      )
+      );
     }
-    await connection.commit()
-    return { insertedCount: scoresArray.length }
+    await connection.commit();
+    return { insertedCount: scoresArray.length };
   } catch (err) {
-    await connection.rollback()
-    throw err
+    await connection.rollback();
+    throw err;
   } finally {
-    connection.release()
+    connection.release();
   }
 }
 
@@ -158,7 +158,7 @@ async function updateScore(scoreId, updateData) {
   }
   if (updateData.examDate) {
     fields.push('exam_date = ?')
-    params.push(updateData.subject)
+    params.push(updateData.examDate)
   }
   if (updateData.subject) {
     fields.push('subject = ?')

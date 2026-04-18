@@ -25,6 +25,4 @@ async function recordOperation(user, type, content, targetType = null, targetId 
   }
 }
 
-module.exports = {
-  recordOperation
-}
+module.exports = { recordOperation }

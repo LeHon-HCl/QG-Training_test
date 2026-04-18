@@ -3,7 +3,7 @@ const { sendJson, sendError } = require('../utils/response')
 const { validateScore, validateScoreUpdate } = require('../utils/validation')
 const { exportToCSV } = require('../utils/export')
 const db = require('../db')
-const recordOperation = require('../utils/operationLogger')
+const { recordOperation } = require('../utils/operationLogger')
 
 async function handleAddScore(req, res) {
   console.log('进入 handleAddScore，user:', req.user);
@@ -73,27 +73,48 @@ async function handleBatchAddScores(req, res) {
 
   //班主任权限：确保所有学生都属于自己班级
   if (user.role === 'teacher') {
-    const studentIds = [...new Set(scores.map(s => s.studentId))]
+    const studentIds = [...new Set(scores.map(s => s.studentId))];
+    // ✅ 修改 SQL：同时查询 student_id 和 class_id
     const [rows] = await db.execute(
-      `SELECT cs.student_id
-      FROM class_student cs
-      JOIN class_teacher ct ON cs.class_id = ct.class_id
-      WHERE ct.teacher_id = ? AND cs.student_id IN (${studentIds.map(() => '?').join(',')})`,
+      `SELECT cs.student_id, cs.class_id
+         FROM class_student cs
+         JOIN class_teacher ct ON cs.class_id = ct.class_id
+         WHERE ct.teacher_id = ? AND cs.student_id IN (${studentIds.map(() => '?').join(',')})`,
       [user.userId, ...studentIds]
-    )
-    const allowedIds = rows.map(r => r.student_id)
+    );
+    // 建立映射表
+    const studentClassMap = {};
+    rows.forEach(r => { studentClassMap[r.student_id] = r.class_id; });
+    console.log('studentClassMap:', studentClassMap);
+
     for (const item of scores) {
-      if (!allowedIds.includes(item.studentId)) {
-        return sendError(res, 403, `学生ID ${item.studentId} 不属于您的班级`)
+      const classId = studentClassMap[item.studentId];
+      if (!classId) {
+        return sendError(res, 403, `学生ID ${item.studentId} 不在您管理的班级中`);
       }
-      //自动填充classId
-      const studentRow = rows.find(r => r.student_id === item.studentId)
-      item.classId = studentRow.class_id
+      item.classId = classId;
+    }
+  } else if (user.role === 'admin') {
+    const studentIds = [...new Set(scores.map(s => s.studentId))];
+    const [rows] = await db.execute(
+      `SELECT student_id, class_id FROM class_student WHERE student_id IN (${studentIds.map(() => '?').join(',')})`,
+      studentIds
+    );
+    const studentClassMap = {};
+    rows.forEach(r => { studentClassMap[r.student_id] = r.class_id; });
+    for (const item of scores) {
+      if (!item.classId) {
+        const classId = studentClassMap[item.studentId];
+        if (!classId) {
+          return sendError(res, 400, `学生ID ${item.studentId} 未分配班级`);
+        }
+        item.classId = classId;
+      }
     }
   }
 
   try {
-    const results = await scoreService.addScoresBatch(scores, user.userId)
+    const results = await scoreService.addScoresBatch(scores)
     //记录日志
     await recordOperation(
       req.user,
@@ -162,7 +183,7 @@ async function handleUpdateScore(req, res) {
     // 班主任权限：确保只能修改自己班级的成绩
     if (user.role === 'teacher') {
       const [rows] = await db.execute(
-        `SELECT 1 FROM class_teacher WHERE teacher_id = ? AND student_id = ?`,
+        `SELECT 1 FROM class_teacher WHERE teacher_id = ? AND class_id = ?`,
         [user.userId, original.class_id]
       )
       if (rows.length === 0) {
@@ -199,7 +220,7 @@ async function handleDeleteScore(req, res) {
 
     if (user.role === 'teacher') {
       const [rows] = await db.execute(
-        `SELECT 1 FROM class_teacher WHERE teacher_id = ? AND student_id = ?`,
+        `SELECT 1 FROM class_teacher WHERE teacher_id = ? AND class_id = ?`,
         [user.userId, original.class_id]
       )
       if (rows.length === 0) {

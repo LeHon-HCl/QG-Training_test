@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教学管理系统 </title>
+  <!-- <link rel="stylesheet" href="./css/index.css"> -->
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- 侧边导航栏 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h3>教学管理</h3>
+        <span id="userInfo">用户信息</span>
+      </div>
+      <nav class="nav-menu" id="navMenu">
+        <!-- 菜单项由JS根据角色动态生成 -->
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="btn-logout">退出登录</button>
+      </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content" id="mainContetn">
+      <div id="viewContainer" class="view-container">
+        <!-- 视图内容由路由进行渲染 -->
+        <div class="skeleton-loading">加载中...</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 全局弹窗容器 -->
+  <div id="modalContainer" class="modal-container hidden"></div>
+
+  <!-- 基础库和配置 -->
+  <script src="./js/api.js"></script>
+  <script src="./js/components.js"></script>
+
+  <!-- 视图模块 -->
+  <script src="./js/views/classes.js"></script>
+  <script src="./js/views/scores.js"></script>
+  <script src="./js/views/notices.js"></script>
+  <script src="./js/views/logs.js"></script>
+
+
+
+  <script src="./js/router.js"></script>
+  <script src="./app.js"></script>
+</body>
+
+</html>
