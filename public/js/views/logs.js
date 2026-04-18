@@ -1,5 +1,3 @@
-// public/js/views/logs.js
-
 (function () {
   let currentLogs = [];
   let currentPagination = { page: 1, pageSize: 20, total: 0 };
@@ -28,6 +26,8 @@
     { value: 'UPDATE_NOTICE', label: '编辑通知' },
     { value: 'DELETE_NOTICE', label: '删除通知' }
   ];
+
+  let eventsBound = false
 
   // 主渲染函数
   async function renderLogsView() {
@@ -84,7 +84,10 @@
 
     setTimeout(async () => {
       await loadLogs();
-      bindEvents();
+      if (!eventsBound) {
+        bindEvents();
+        eventsBound = true
+      }
     }, 10);
 
     return html;
@@ -97,8 +100,8 @@
     tbody.innerHTML = `<tr><td colspan="7" class="loading-placeholder">加载中...</td></tr>`;
 
     const params = {
-      page: currentPagination.page,
-      pageSize: currentPagination.pageSize,
+      page: currentPagination.page || 1,
+      pageSize: currentPagination.pageSize || 20,
       ...currentFilters
     };
     // 清理空值
@@ -107,10 +110,30 @@
     });
 
     try {
-      const res = await api.getLogs(params);
-      const data = res.data || res;
-      currentLogs = data.data || data;
-      currentPagination = data.pagination || { total: currentLogs.length };
+      const res = await api.getLogs(params)
+      console.log('教师日志响应：', res)
+      // 后端返回格式固定为 { data: [], pagination: {} }
+      // 安全提取数据
+      let logs = [];
+      let pagination = { page: 1, pageSize: 20, total: 0, totalPages: 0 }
+
+      if (res && typeof res === 'object') {
+        // 如果返回的是标准格式 { data, pagination }
+        if (Array.isArray(res.data)) {
+          logs = res.data;
+          pagination = res.pagination || pagination;
+        }
+        // 如果直接返回数组（某些情况）
+        else if (Array.isArray(res)) {
+          logs = res;
+          pagination.total = logs.length;
+        }
+      }
+
+      currentLogs = logs;
+      currentPagination = pagination;
+
+      console.log('✅ 分页数据:', currentPagination);
 
       if (currentLogs.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="empty-placeholder">暂无操作日志</td></tr>`;

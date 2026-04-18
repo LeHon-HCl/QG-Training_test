@@ -166,6 +166,8 @@
       const user = getUser();
       if (user.role !== 'student') {
         loadStatistics();
+      } else {
+        updateStats([]);
       }
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="7" class="error-placeholder">加载失败: ${err.message}</td></tr>`;
@@ -245,6 +247,14 @@
   }
 
   function updateStats(stats) {
+    const avgEl = document.getElementById('avgScore')
+    const maxEl = document.getElementById('maxScore')
+    const minEl = document.getElementById('minScore')
+    const passEl = document.getElementById('passRate')
+
+    // 如果任一元素不存在，直接返回（例如学生视图）
+    if (!avgEl || !maxEl || !minEl || !passEl) return
+
     if (!stats || stats.length === 0) {
       document.getElementById('avgScore').textContent = '--';
       document.getElementById('maxScore').textContent = '--';

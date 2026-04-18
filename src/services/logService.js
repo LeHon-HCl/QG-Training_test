@@ -32,27 +32,24 @@ async function getLogs(filters, pagination, user) {
   const conditions = []
   const params = []
 
-  //权限过滤：班主任只能看与自己班级相关的日志
   if (user.role === 'teacher') {
-    //获取该教师管理的所有班级的ID
+    // 获取该教师管理的所有班级ID
     const [classRows] = await db.execute(
       `SELECT class_id FROM class_teacher WHERE teacher_id = ?`,
       [user.userId]
-    )
-    const classIds = classRows.map(r => r.class_id)
-    if (classIds.length === 0) {
-      //如果没有管理任何班级，返回空结果
-      return { data: [], total: 0 }
+    );
+    const classIds = classRows.map(r => r.class_id);
+
+    if (classIds.length > 0) {
+      const placeholders = classIds.map(() => '?').join(',');
+      // 条件：(班级相关) 或 (操作人自己)
+      conditions.push(`( (l.target_type = 'class' AND l.target_id IN (${placeholders})) OR l.operator_id = ? )`);
+      params.push(...classIds, user.userId);
+    } else {
+      // 无班级时，只能看自己的操作
+      conditions.push(`l.operator_id = ?`);
+      params.push(user.userId);
     }
-    // 日志目标类型为 'class' 且 target_id 在班级列表中，
-    // 或者日志与这些班级的关联通过其他方式（此处简化：仅当 target_type='class' 且 target_id 属于本班，或日志内容涉及班级操作）
-    // 更严谨的做法是通过 content 字段模糊匹配，但为了性能，我们采用 target_type='class' 过滤。
-    // 对于成绩、通知等，其 target_id 可能是成绩ID或通知ID，需要关联表获取 class_id，过于复杂。
-    // 题目通常简化：班主任只能查看操作内容涉及本班的日志，这里我们约定日志记录时 target_type 统一为 'class'，target_id 为班级ID。
-    // 为简化，我们要求所有业务日志记录时都传入 targetType='class' 和 targetId=班级ID。
-    const placeholders = classIds.map(() => '?').join(',')
-    conditions.push(`(l.target_type = 'class' AND l.target_id IN (${placeholders}))`)
-    params.push(...classIds)
   }
   // 教务主任无限制
 
@@ -110,14 +107,17 @@ async function getLogsCount(filters, user) {
     const [classRows] = await db.execute(
       `SELECT class_id FROM class_teacher WHERE teacher_id = ?`,
       [user.userId]
-    )
-    const classIds = classRows.map(r => r.class_id)
-    if (classIds.length === 0) {
-      return 0
+    );
+    const classIds = classRows.map(r => r.class_id);
+
+    if (classIds.length > 0) {
+      const placeholders = classIds.map(() => '?').join(',');
+      conditions.push(`( (l.target_type = 'class' AND l.target_id IN (${placeholders})) OR l.operator_id = ? )`);
+      params.push(...classIds, user.userId);
+    } else {
+      conditions.push(`l.operator_id = ?`);
+      params.push(user.userId);
     }
-    const placeholders = classIds.map(() => '?').join(',')
-    conditions.push(`(l.target_type = 'class' AND l.target_id IN (${placeholders}))`)
-    params.push(...classIds)
   }
 
   if (filters.operationType) {

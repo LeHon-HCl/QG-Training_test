@@ -51,6 +51,11 @@
       await loadClasses('')
       await loadTeachers()
       await loadGradeOptions()
+      const gradeSelect = document.querySelector('#gradeFilter');
+      if (gradeSelect && !gradeSelect.dataset.listener) {
+        gradeSelect.addEventListener('change', (e) => loadClasses(e.target.value));
+        gradeSelect.dataset.listener = 'true';
+      }
     }, 10)
     return html
   }
@@ -82,8 +87,9 @@
       }))
 
 
-      currentClasses = enrichedClasses;
+      currentClasses = enrichedClasses
       renderClassTable(enrichedClasses)
+      await loadGradeOptions()
     } catch (err) {
       tbody.innerHTML = `<tr><td colspan="6" class="error-placeholder">加载失败: ${err.message}</td></tr>`
     }
@@ -127,6 +133,12 @@
   async function loadGradeOptions() {
     const select = document.querySelector('#gradeFilter')
     if (!select) return
+
+    // 清空现有选项，保留第一个“全部年级”
+    while (select.options.length > 1) {
+      select.remove(1)
+    }
+
     const grades = [...new Set(currentClasses.map(c => c.grade))].sort((a, b) => b - a)
     grades.forEach(g => {
       const option = document.createElement('option')
@@ -135,11 +147,6 @@
       select.appendChild(option)
     })
 
-    select.addEventListener('change', (e) => {
-      loadClasses(e.target.value)
-    })
-
-    loadClasses(select.value || '')
   }
 
   // 绑定表格内按钮事件（事件代理）
