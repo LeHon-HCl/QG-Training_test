@@ -22,36 +22,38 @@
 
 ## 📁 项目结构
 
+```
 teaching-manage-system/
-├── server.js # 后端服务入口
+├── server.js               # 后端服务入口
 ├── package.json
-├── public/ # 前端静态资源
-│ ├── index.html # SPA 主框架
-│ ├── login.html # 登录页
-│ ├── css/
-│ │ ├── base.css
-│ │ ├── layout.css
-│ │ ├── login.css
-│ │ ├── components.css
-│ │ ├── notices.css
-│ │ └── responsive.css
-│ └── js/
-│ ├── api.js # 请求封装 & 缓存
-│ ├── components.js # Modal/Toast/Table/Pagination 组件
-│ ├── router.js # 前端路由
-│ ├── app.js # 应用入口
-│ └── views/ # 各功能视图
-│ ├── classes.js
-│ ├── scores.js
-│ ├── notices.js
-│ └── logs.js
-└── src/ # 后端源码
-├── db.js # 数据库连接池
-├── router.js # 路由分发
-├── middlewares/ # 中间件（日志、解析、鉴权）
-├── routes/ # 路由处理函数
-├── services/ # 数据库操作封装
-└── utils/ # 工具函数（JWT、密码、校验、导出）
+├── public/                 # 前端静态资源
+│   ├── index.html          # SPA 主框架
+│   ├── login.html          # 登录页
+│   ├── css/
+│   │   ├── base.css
+│   │   ├── layout.css
+│   │   ├── login.css
+│   │   ├── components.css
+│   │   ├── notices.css
+│   │   └── responsive.css
+│   └── js/
+│       ├── api.js          # 请求封装 & 缓存
+│       ├── components.js   # Modal/Toast/Table/Pagination 组件
+│       ├── router.js       # 前端路由
+│       ├── app.js          # 应用入口
+│       └── views/          # 各功能视图（位于 js 文件夹内）
+│           ├── classes.js
+│           ├── scores.js
+│           ├── notices.js
+│           └── logs.js
+└── src/                    # 后端源码
+    ├── db.js               # 数据库连接池
+    ├── router.js           # 路由分发
+    ├── middlewares/        # 中间件（日志、解析、鉴权）
+    ├── routes/             # 路由处理函数
+    ├── services/           # 数据库操作封装
+    └── utils/              # 工具函数（JWT、密码、校验、导出）
+```
 
 ## 🚀 快速开始
 
@@ -158,7 +160,7 @@ _以上账号已预置在数据库备份文件中，密码已通过 `hashPasswor
 
 ## 👨‍💻 作者
 
-本项目为《教学管理系统》课程设计/考核作品，全程原生开发，符合考题所有要求。
+本项目为《教学管理系统》考核作品，全程原生开发，符合考题所有要求。
 
 ---
 
