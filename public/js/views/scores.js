@@ -1,4 +1,5 @@
 (function () {
+  let eventsBound = false
   let currentScores = [];
   let currentPagination = { page: 1, pageSize: 10, total: 0 };
   let currentFilters = { classId: '', subject: '', studentId: '', startDate: '', endDate: '' };
@@ -272,6 +273,9 @@
 
   // 事件绑定（代理）
   function bindEvents() {
+    if (eventsBound) return
+    eventsBound = true
+
     const tbody = document.getElementById('scoresTableBody');
     if (tbody) {
       tbody.addEventListener('click', async (e) => {
