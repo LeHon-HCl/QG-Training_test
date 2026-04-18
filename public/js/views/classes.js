@@ -107,11 +107,12 @@
             <td>${cls.teacher ? cls.teacher.real_name : '<span class="text-muted">未绑定</span>'}</td>
             <td>${cls.studentCount}</td>
             <td class="action-cell">
-                <button class="btn-icon" data-action="view" data-id="${cls.id}" title="查看详情">👁️</button>
-                <button class="btn-icon" data-action="edit" data-id="${cls.id}" title="编辑">✏️</button>
-                <button class="btn-icon" data-action="bind" data-id="${cls.id}" title="绑定班主任">👨‍🏫</button>
-                <button class="btn-icon" data-action="students" data-id="${cls.id}" title="管理学生">👥</button>
-                <button class="btn-icon btn-danger" data-action="delete" data-id="${cls.id}" title="删除">🗑️</button>
+              <button class="btn-icon" data-action="view" data-id="${cls.id}" title="查看详情">👁️</button>
+              <button class="btn-icon" data-action="edit" data-id="${cls.id}" title="编辑">✏️</button>
+              <button class="btn-icon" data-action="bind" data-id="${cls.id}" title="绑定班主任">👨‍🏫</button>
+              <button class="btn-icon" data-action="unbind" data-id="${cls.id}" title="解绑班主任">🔓</button>
+              <button class="btn-icon" data-action="students" data-id="${cls.id}" title="管理学生">👥</button>
+              <button class="btn-icon btn-danger" data-action="delete" data-id="${cls.id}" title="删除">🗑️</button>
             </td>
         </tr>
     `).join('')
@@ -164,6 +165,8 @@
         case 'edit': showEditClassModal(classId)
           break
         case 'bind': showBindTeacherModal(classId)
+          break
+        case 'unbind': confirmUnbindTeacher(classId)
           break
         case 'students': showManageStudentModal(classId)
           break
@@ -418,6 +421,36 @@
     } catch (err) {
       showToast('获取班级详情失败: ' + err.message, 'error');
     }
+  }
+
+  function confirmUnbindTeacher(classId) {
+    const id = parseInt(classId);
+    const cls = currentClasses.find(c => c.id === id);
+    if (!cls) {
+      showToast('班级信息未找到', 'error');
+      return;
+    }
+    if (!cls.teacher) {
+      showToast('该班级尚未绑定班主任', 'info');
+      return;
+    }
+
+    const modal = new Modal({
+      title: '确认解绑',
+      content: `<p>确定要解除班级 "${cls.class_name}" 的班主任 "${cls.teacher.real_name}" 吗？</p>`,
+      showCancel: true,
+      onConfirm: async () => {
+        try {
+          await api.unbindTeacher(classId);
+          modal.hide();
+          loadClasses();                // 刷新列表
+          showToast('班主任解绑成功', 'success');
+        } catch (err) {
+          showToast(err.message || '解绑失败', 'error');
+          return false;                // 阻止弹窗关闭
+        }
+      }
+    });
   }
 
   // 辅助函数：轻提示
